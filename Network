@@ -1,0 +1,75 @@
+#include<avr/io.h>
+#include<util/delay.h>
+#include<serial.h>
+void lcd_init()
+{
+ lcd_cmd(0x02);
+ lcd_cmd(0x28);
+ lcd_cmd(0x0c);
+ lcd_cmd(0x06);
+ lcd_cmd(0x01);
+}
+void lcd_cmd(int cmd)
+{
+PORTB = cmd&0xf0;  //upper bit
+PORTB = PORTB+0X04;
+_delay_ms(2);
+PORTB = PORTB-0x04;
+PORTB = (cmd<<4)&0xf0; //lower bit
+PORTB = PORTB+0X04;
+_delay_ms(2);
+PORTB = PORTB-0X04;
+}
+void lcd_data(int data)
+{
+ PORTB =  data&0xf0;
+ PORTB = PORTB +0X05;
+ _delay_ms(2);
+ PORTB = PORTB - 0x04;
+ PORTB = (data<<4)&0xf0;
+ PORTB = PORTB +0x05;
+ _delay_ms(2);
+ PORTB = PORTB - 0X04;
+}
+
+void lcd_string(char *str)
+{
+ int i = 0;
+ while(str[i]!='\0')
+ {
+  lcd_data(str[i]);
+  i++;
+  }
+ }
+  void lcd_num(int num)
+  {
+   int a=0;
+   if(num==0)
+   {
+   lcd_data(48);
+   }
+   lcd_cmd(0x04);  //reverse
+   while(num!=0)
+   {
+   a=num%10;
+   lcd_data(48+a);
+   num = num/10;
+   }
+   lcd_cmd(0x06); //forward
+   }
+
+
+int main()
+{
+DDRB = 0XFF;
+lcd_init();
+_delay_ms(10);
+serialinit();
+while(1)
+{
+char rx = rxdata();
+lcd_data(rx);
+}
+}
+
+
